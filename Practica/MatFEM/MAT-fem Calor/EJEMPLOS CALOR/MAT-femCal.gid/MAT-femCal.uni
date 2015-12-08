@@ -1,0 +1,68 @@
+BEGIN TABLE
+ LENGTH : m {reference} , 100 cm , 1e+3mm
+ ANGLE :  rad {reference}
+ PUNTUAL_ELASTIC_DISP : N/m {reference}, 1e-1 kgf/m, 1e-4 ton/m, 1e-3 kN/m, 1e-6 MN/m, 0.571015e-2 lbf/in
+ PUNTUAL_ELASTIC_ROT : N*m/rad {reference}, 1e-1 kgf*m/rad, 1e-4 ton*m/rad, 1e-3 kN*m/rad, 1e-6 MN*m/rad, 8.85075 lbf*in/rad
+ LINEAR_ELASTIC_ROT : N*m/m/rad {reference}, 1e-1 kgf*m/m/rad, 1e-4 ton*m/m/rad, 1e-3 kN*m/m/rad, 1e-6 MN*m/m/rad, 0.2248090247 lbf*in/in/rad
+ SURFACE_ELASTIC_ROT : N*m/m^2/rad {reference}, 1e-1 kgf*m/m^2/rad, 1e-4 ton*m/m^2/rad, 1e-3 kN*m/m^2/rad, 1e-6 MN*m/m^2/rad, 0.571015e-2 lbf*in/in^2/rad
+ PRESSURE : N/m^2 {reference}, 1e-1 kgf/m^2, 1e-4 ton/m^2, 1e-3 kN/m^2, 1e-6 MN/m^2, 0.1450377904e-3 psi
+ LOAD : N {reference}, 1e-1 kgf, 1e-4 ton, 1e-3 kN, 1e-6 MN, 0.2248090247 lbf
+ MOMENT : N*m {reference}, 1e-1 kgf*m, 1e-4 ton*m, 1e-3 kN*m, 1e-6 MN*m, 8.850749004 lbf*in
+ LINEAR_MOMENT: N*m/m {reference}, 1e-1 kgf*m/m, 1e-4 ton*m/m, 1e-3 kN*m/m, 1e-6 MN*m/m, 0.2248090247 lbf*in/in
+ TEMPERATURE : Cel {reference} , 33.80 Far , 274.15 Kel
+ SELF_WEIGHT : N/m^3 {reference}, 1e-1 kgf/m^3, 1e-4 ton/m^3, 1e-3 kN/m^3, 1e-6 MN/m^3, 0.3683959876e-5 lbf/in^3
+ AREA : m^2 {reference}, 1e+4 cm^2, 1e+6 mm^2, 1550 in^2
+ INERTIA : m^4 {reference}, 1e+8 cm^4, 1e+12 mm^4, 2402509.610 in^4
+ TORSION_INERTIA: m^3/rad {reference}, 1e-6 cm^3/rad, 1e-9 mm^3/rad, 61023.74409 in^3/rad
+ MASS: kg {reference}, 0.102 utm , 1e-3 t, 2.204622622 lb
+ PUNTUAL_MASS_ROT : kg*m^2 {reference}, 0.102 utm*m^2 , 1e-3 t*m^2, 3417.171898 lb*in^2
+ LINEAR_MASS_DISP: kg/m {reference}, 0.102 utm/m , 1e-3 t/m, 0.5599741460e-1 lb/in 
+ LINEAR_MASS_ROT: kg*m^2/m {reference}, 0.102 utm*m^2/m , 1e-3 t*m^2/m, 86.79616622 lb*in^2/in
+ SURFACE_MASS_DISP: kg/m^2 {reference}, 0.102 utm/m^2 , 1e-3 t/m^2, 0.1422334331e-2 lb/in^2
+ TIME : s {reference} , 0.016667 min , 2.778e-4 h
+ ACCELERATION: m/s^2 {reference} , 100 cm/s^2 , 1e+3 mm/s^2
+ FREQUENCY : Hz {reference}
+ CIRCULAR_FREQ : rad/s {reference}
+ HEAT_FLUX : N/m/s {reference}
+ HEAT_FLUX_POR_UNIT_LENGHT : N/m^2/s {reference}
+END
+
+BEGIN SYSTEM(INTERNATIONAL)
+ LENGTH : m 
+ ANGLE :  rad
+ PUNTUAL_ELASTIC_DISP : N/m
+ PUNTUAL_ELASTIC_ROT : N*m/rad
+ LINEAR_ELASTIC_ROT : N*m/m/rad
+ SURFACE_ELASTIC_ROT : N*m/m^2/rad
+ PRESSURE : N/m^2
+ LOAD : N
+ MOMENT : N*m
+ LINEAR_MOMENT: N*m/m
+ TEMPERATURE : Cel
+ SELF_WEIGHT : N/m^3
+ AREA : m^2
+ INERTIA : m^4
+ MASS: kg
+ PUNTUAL_MASS_ROT : kg*m^2
+ LINEAR_MASS_DISP: kg/m
+ LINEAR_MASS_ROT: kg*m^2/m
+ SURFACE_MASS_DISP: kg/m^2
+ TIME : s
+ ACCELERATION: m/s^2
+ FREQUENCY : Hz
+ CIRCULAR_FREQ : rad/s
+ HEAT_FLUX : N/m/s
+ HEAT_FLUX_POR_UNIT_LENGHT : N/m^2/s 
+END
+
+USER DEFINED: DISABLED
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,166 @@
+function [phi,Rg] = fdm_solver(data,Kg,Rg)
+%
+%    [phi,Rg] = fdm_solver(data,Kg,Rg)
+%
+%
+%   Rutina SOLVER de resolucion del sistema de ecuaciones
+%   
+%   Type_solver = 0 ---> metodo directo con un parametro de
+%                        parametro de relajacion "relax"
+%                        grado de implicitud (1/2 Cranck Nicholson) "alpha" (use >0)
+%               = 1 ---> Line search
+%               = 2 ---> Explicito - Forward Euler
+%               = 3 ---> GMRES   
+%               = 4 ---> QMR (quasi minimum residual) 
+%
+
+%disp(' at SOLVER ')
+%keyboard;pause
+
+relax = data.param.relax;
+fixa = data.fixa(:,1);
+phi = data.state;
+ndf = data.param.ndf;
+scaling = data.param.scaling;
+
+if scaling,
+    scalev = sum(abs(Kg'))';
+    Rg   = Rg ./ scalev;
+    Kg   = diag(scalev)\Kg;
+end
+
+if strcmp(data.param.type_solver,'implicit')
+    free = find(fixa==0);
+    Rg = Rg(free);
+    Kg = Kg(free,free);   
+    dphi = -Kg\Rg;
+    phiv = m2v(phi);
+    phiv(free) = phiv(free)+ relax*dphi;
+    dphi = relax*dphi;
+    phi  = v2m(phiv,ndf);    
+else
+    error(' Not available other than IMPLICIT ')
+end
+
+return
+
+type_solver = prop_solver(1);
+relax       = prop_solver(2);
+nu_max      = prop_solver(3);
+alfa_min    = prop_solver(4);
+alpha       = prop_solver(5);
+ntime       = prop_solver(6);
+nstep       = prop_solver(7);
+scaling     = prop_solver(8);
+
+[numnp,ndf] = size(phi);
+
+if scaling & type_solver~=2,
+    % SCALING
+    scalev = sum(abs(Kg'))';
+    Rg   = Rg ./ scalev;
+    Kg   = diag(scalev)\Kg;
+    % FIN SCALING
+end
+
+if type_solver==0,
+    
+    if alpha==0, alpha=1; end
+    alpha = prop(14);
+    free = find(fixa==0);
+    Rg = Rg(free);
+    Kg = Kg(free,free);
+    
+    dphi = Kg\Rg;
+%    dphi = dphi/alpha;
+    phiv = m2v(phi);
+    phiv(free) = phiv(free)+ relax*dphi;
+    dphi = relax*dphi;
+    phi  = v2m(phiv,ndf);
+    
+elseif type_solver==1,
+    
+    linesear
+    
+elseif type_solver==2,
+    
+    % solver Forward Euler explicito 
+    
+    free = find(fixa==0);
+    Rg = Rg(free);
+    Kg = diag(Kg);
+%    keyboard;pause    
+    Kg = Kg(free);     
+    dphi = Rg./Kg;
+    phiv = m2v(phi);
+    phiv(free) = phiv(free)+ dphi;
+    phi  = v2m(phiv,ndf);
+    
+elseif type_solver==3,
+    
+    free = find(fixa==0);
+    Rg = Rg(free);
+    Kg = Kg(free,free);
+    
+    TOL = 1e-6;
+    MAXIT = 25;
+    RESTART = 25;
+    %keyboard;pause
+    if 0,
+        M1=[]; M2=[]; 
+    elseif 1,
+        M1 = diag(diag(Kg));
+        M2 = speye(size(Kg,1));
+    else
+        [M1,M2] = luinc(Kg,TOL); 
+    end
+    phiv = m2v(phi);     
+    X0 = phiv(free);
+    
+    disp(' ===== SOLVER ROUTINE =====');    
+    
+    t=cputime;
+    [dphi,FLAG,RELRES,ITER,RESVEC] = GMRES(Kg,Rg,RESTART,TOL,MAXIT,M1,M2,X0);
+    t_el = cputime-t;
+    disp([' GMRES method --- CPU time = '  num2str(t_el) ])
+    
+    %[dphi,FLAG,RELRES,ITER,RESVEC] = PCG(Kg,Rg,RESTART,TOL); %,MAXIT,M1,M2,X0);     
+    disp([' GMRES --- flag & |R| ' num2str(FLAG) '  &  ' num2str(RELRES) ])
+    %keyboard;pause
+    
+    phiv(free) = phiv(free)+ dphi;
+    phi  = v2m(phiv,ndf);
+    
+elseif type_solver==4,
+    
+    free = find(fixa==0);
+    Rg = Rg(free);
+    Kg = Kg(free,free);
+    
+    TOL = 1e-6;
+    MAXIT = 25;
+    RESTART = 25;
+    %keyboard;pause
+    if 0,
+        M1=[]; M2=[]; 
+    elseif 1,
+        M1 = diag(diag(Kg));
+        M2 = speye(size(Kg,1));
+    else
+        [M1,M2] = luinc(Kg,TOL); 
+    end
+    phiv = m2v(phi);     
+    X0 = phiv(free);
+    
+    disp(' ===== SOLVER ROUTINE =====');    
+    t=cputime;
+    dphi = qmr(Kg,Rg,TOL,500,[],[],[]);
+    t_el = cputime-t;
+    disp([' QMR method --- CPU time = '  num2str(t_el) ])
+    
+    phiv(free) = phiv(free)+ dphi;
+    phi  = v2m(phiv,ndf);
+        
+else
+    error(' Bad choice of Solver type [0,1,2] ')
+end

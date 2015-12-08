@@ -1,0 +1,38 @@
+cond Point_Constraints
+2
+global
+cond(int,1) && cond(int,3)
+1
+0
+0
+ep_apoiol.geo
+global
+cond(int,1) || cond(int,3)
+cond(int,3)
+cond(int,1)*(-1)
+0
+ep_apoio-rodillo.geo
+cond Point_Load
+1
+global
+1
+cond(real,1)
+cond(real,2)
+0
+ep_fletxa.geo
+cond Linear_Constraints
+1
+local
+1
+1
+0
+0
+ep_apoioL.geo
+cond Uniform_Load
+1
+global
+1
+cond(real,2)
+-cond(real,1)
+0
+ep_flechas.geo

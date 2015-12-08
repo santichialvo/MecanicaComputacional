@@ -1,0 +1,14 @@
+ffun_1 :
+
+shape_function : N = x.^m.*(1-x);
+ffun_Ej_2_0_1D : z = x.^4.*(1-x);
+
+ffun_2 :
+
+shape_function : N = x.^m.*(1-x);
+ffun_Ej_2_0_1D : z = x.*sin(2*pi*x);
+
+ffun_3 :
+
+shape_function : N = sin(m*pi*x);
+ffun_Ej_2_0_1D : z = x.*sin(2*pi*x);

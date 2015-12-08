@@ -1,0 +1,111 @@
+%
+% script para un codigo preliminar de diferencias finitas
+%
+
+if(exist('initia')==0),
+    disp('Enter variable INITIA ')
+    disp(' initia == 0 ---> if is a continuation of an older run  ')
+    disp(' initia ~= 0 ---> if started from the beginning  ')
+    initia = input(' Initia = ')
+end
+
+% grid points
+x0 = 0; Lx = 1; Nx = 100;
+if 0
+    psi = (0:Nx)'/Nx;
+    xnod = psi.^2*Lx+x0;
+else
+    %xnod = (0:Nx)'/Nx*Lx.*rand(Nx+1,1)+x0;
+    %xnod = sort(xnod);
+    xnod = (0:Nx)'/Nx*Lx+x0;
+end
+
+% parameters
+dt = 1;
+ntime = 20;
+conductivity = 1;
+rho = 1;
+Cp = 1;
+ttime = 0;
+ndf = 1;
+maxit = 5;
+tol_newton = 1e-10;
+scaling = 1;
+nfreqplot = 1;
+
+% external fields
+numnp = size(xnod,1);
+% nodal source term
+source = ones(numnp,1);
+source = 0*xnod.^3;
+
+xmin = min(xnod);
+xmax = max(xnod);
+tol  = 1e-6;
+
+% fixations
+fixa = zeros(numnp,2);
+nodes_lef = find(abs(xnod-xmin)<tol);
+nodes_rig = find(abs(xnod-xmax)<tol);
+
+fixa(nodes_lef,:) = [0,1];
+fixa(nodes_rig,:) = [1,0];
+
+fixa(nodes_lef,:) = [1,1];
+fixa(nodes_rig,:) = [0,1];
+
+% initial state
+if initia
+    state = 0*xnod;
+    for idf=1:ndf
+        nofree = find(fixa(:,1)~=0)
+        state(nofree,idf) = fixa(nofree,2);
+    end
+    state_old = state;
+    data.state = state;
+    data.state_old = state_old;
+    data.initial_state = state;
+end
+
+% handle data
+data.param.dt = dt;
+data.param.rho = rho;
+data.param.Cp = Cp;
+data.param.conductivity = conductivity;
+data.param.ntime = ntime;
+data.param.type_solver = 'implicit';
+data.param.relax = 1;
+data.param.ndf = ndf;
+data.param.scaling = scaling;
+data.param.nfreqplot = nfreqplot;
+
+data.xnod = xnod;
+data.fixa = fixa;
+
+data.source = source;
+
+vtime= [(1:1e-5:1e-4),(2e-4:1e-4:1e-3),(1e-2:1e-2:1)];
+%ntime = length(vtime),
+for itime=1:ntime
+    check_conv = 1;
+    iter = 1;
+    data.state_old = data.state;
+    while check_conv
+        ttime = ttime+dt;
+        %ttime = vtime(itime);
+        % ensamblaje
+        [K,R] = fdm_assemble(data);
+        % resolucion
+        [phi_new,R] = fdm_solver(data,K,R);
+        % update solution
+        data.state = phi_new;
+        % convergence check
+        disp([' time step = ' num2str(itime) ' t= ' num2str(ttime) ' | R | = ' num2str(norm(R))])
+        check_conv = (norm(R)>tol_newton)&(iter<=maxit);
+        iter = iter+1;
+        %keyboard;pause
+    end
+    % plot
+    fdm_plot(data,itime)
+end
+

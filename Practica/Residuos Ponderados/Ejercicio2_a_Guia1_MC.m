@@ -1,0 +1,47 @@
+x = 0:0.01:1;
+e = exp(1);
+M=9;
+
+%% Primer parte del ejercicio (Sin psi y con psi)
+%Matriz K y vector F
+K_s1=sym(zeros(M,M));
+f_s1=sym(zeros(M,1));
+K_s2=sym(zeros(M,M));
+f_s2=sym(zeros(M,1));
+
+syms X Nl Nm Derivada2 ms ls;
+Derivada2_1=diff(diff(sin(ms*pi*X),X),X);
+Nl_1=sin(ls*pi*X);
+Nm_1=sin(ms*pi*X);
+Derivada2_2=diff(diff(e^(ms*X),X),X);
+Nl_2=e^(ls*X);
+Nm_2=e^(ms*X);
+
+for l=1:M,
+ for m=1:M,
+  K_s1(l,m) = int(subs(Nl_1,ls,l)*subs(Derivada2_1,ms,m),X,0,1);
+  K_s2(l,m) = int(subs(Nl_2,ls,l)*subs(Derivada2_2,ms,m),X,0,1) - subs(subs(Nl_2,ls,l),X,0)*subs(subs(Nm_2,ms,m),X,0) - subs(subs(Nl_2,ls,l),X,1)*subs(subs(Nm_2,ms,m),X,1);
+ end
+ f_s1(l) = int(subs(Nl_1,ls,l)*(50*e^X),X,0,1);
+ f_s2(l) = int(subs(Nl_2,ls,l)*(50*e^X),X,0,1) - subs(subs(Nl_2,ls,l),X,1)*2;
+end
+
+K_1 = double(K_s1);
+f_1 = double(f_s1);
+K_2 = double(K_s2);
+f_2 = double(f_s2);
+
+a_1 = K_1\f_1;
+a_2 = K_2\f_2;
+
+psi = 2*x;
+phi_1 = psi;
+phi_2 = 0;
+
+for m=1:M,
+  phi_1 = phi_1 + a_1(m)*sin(m*pi*x);
+  phi_2 = phi_2 + a_2(m)*e.^(m*x);
+end  
+
+plot(x,phi_1,x,phi_2,'r');
+

@@ -1,0 +1,138 @@
+*loop elems
+*if(elemsmat==0)
+*messagebox - An element without any material was found, some posibilities are that you forget to asign a material to the problem or there is a repited entity over another - Process finished with error
+*endif
+*end
+*loop nodes
+*if(NodesCoord(3)==0)
+*else
+*messagebox - This is a plane problem so z coordinate must be =0 for all nodes - Process finished with error
+*endif
+*end
+*set var MATERIAL=0
+*loop materials
+*set var MATERIAL=Operation(MATERIAL(int)+1)
+*end
+*if(MATERIAL>1)
+*messagebox - This program only allows one material
+*endif
+%=======================================================================
+% MAT-femcCal 1.0  - MAT-femCal is a learning tool for undestanding 
+%                    the Finite Element Method with MATLAB and GiD
+%=======================================================================
+% PROBLEM TITLE = Titulo del problema
+%
+%  Material Properties
+%
+*loop materials
+*format "  kx = %20.5f ;"
+*MatProp(1)
+*format "  ky = %20.5f ;"
+*MatProp(2)
+*format " heat= %20.5f ;"
+*MatProp(3)
+%
+% Coordinates
+%
+global coordinates
+coordinates = [
+*loop nodes
+*format " %15.5f  %15.5f "
+*if(NodesNum == npoin)
+*NodesCoord(1) , *NodesCoord(2) ] ; 
+*else
+*NodesCoord(1) , *NodesCoord(2) ;
+*endif
+*end nodes
+%
+% Elements
+%
+global elements
+elements = [
+*loop elems
+*format " %6i  %6i  %6i  %6i  "
+*if(nnode == 2)
+*if(ElemsNum == nelem)
+*ElemsConec(1) , *ElemsConec(2) ] ; 
+*else
+*ElemsConec(1) , *ElemsConec(2) ; 
+*endif
+*endif
+*if(nnode == 3)
+*if(ElemsNum == nelem)
+*ElemsConec(1) , *ElemsConec(2) , *ElemsConec(3) ] ; 
+*else
+*ElemsConec(1) , *ElemsConec(2) , *ElemsConec(3) ; 
+*endif
+*endif
+*if(nnode == 4)
+*if(ElemsNum == nelem)
+*ElemsConec(1) , *ElemsConec(2) , *ElemsConec(3) , *ElemsConec(4) ] ; 
+*else
+*ElemsConec(1) , *ElemsConec(2) , *ElemsConec(3) , *ElemsConec(4) ; 
+*endif
+*endif
+*end elems
+%
+% Fixed Nodes
+%
+fixnodes = [
+*Set Cond Temperature_Constraints *nodes 
+*Add Cond Linear_Constraints *nodes 
+*Set var nod = 0
+*loop nodes *OnlyInCond
+*if(Cond(1,Int) == 1)
+*Set var nod = nod + 1
+*endif
+*end nodes
+*Set var nod2 = 1
+*loop nodes *OnlyInCond
+*if(Cond(1,Int) == 1)
+*format " %6i %10.5f "
+*if(nod==nod2)
+*NodesNum() ,  *Cond(2) ] ;
+*else
+*NodesNum() ,  *Cond(2) ;
+*endif
+*Set var nod2 = nod2 + 1
+*endif
+*end nodes
+%
+% Punctual Fluxes
+%
+*Set Cond Punctual_Flux *nodes
+*if((CondNumEntities(int)>0))
+*Set var nod = 0
+pointload = [
+*loop nodes *OnlyInCond
+*Set var nod = nod + 1
+*format " %6i %10.5f "
+*if(CondNumEntities(int)==nod)
+*NodesNum , *cond(1,real) ] ;
+*else
+*NodesNum , *cond(1,real) ;
+*endif
+*end nodes
+*else
+pointload = [ ] ;
+*endif
+%
+% Side loads
+%
+*Set Cond Uniform_Flux *elems *CanRepeat
+*if(CondNumEntities(int)>0)
+*Set var nod = 0
+sideload = [
+*loop elems *OnlyInCond
+*Set var nod = nod + 1
+*format " %6i %6i %10.5f %10.5f "
+*if(CondNumEntities(int)==nod)
+*globalnodes(1) , *globalnodes(2) , *cond(1) ];
+*else
+*globalnodes(1) , *globalnodes(2) , *cond(1)  ;
+*endif
+*end elems
+*else
+sideload = [ ];
+*endif
+

@@ -1,0 +1,16 @@
+function fI = ffun_Ej_2_3_lhs(x)
+%
+%
+%
+
+global X ll mm coef
+
+[Nl,L_Nl] = shape_function(x,ll);
+[Nm,L_Nm] = shape_function(x,mm);
+
+[Nl_x0,bas] = shape_function(0,ll);
+[Nm_x0,bas] = shape_function(0,mm);
+[Nl_x1,bas] = shape_function(1,ll);
+[Nm_x1,bas] = shape_function(1,mm);
+
+fI = Nl.*L_Nm - Nl.*Nm - Nl_x0.*Nm_x0 - Nl_x1.*Nm_x1;

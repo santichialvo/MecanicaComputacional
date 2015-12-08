@@ -1,0 +1,29 @@
+function [K,R] = fdm_assemble(data)
+%
+%   [K,R] = fdm_assemble(data)
+%
+
+% handle data
+Dt = data.param.dt;
+rho = data.param.rho;
+Cp = data.param.Cp;
+conductivity = data.param.conductivity;
+ntime = data.param.ntime;
+xnod = data.xnod;
+state = data.state;
+state_old = data.state_old;
+source = data.source;
+fixa = data.fixa;
+
+if 0
+    if 0,  % version vectorizada
+        fdm_assemble_3;
+    else  % version no vectorizada
+        fdm_assemble_2;
+    end
+else
+    fdm_assemble_5;
+end
+
+% gather contributions
+K = sparse(rowg,colg,coeg);

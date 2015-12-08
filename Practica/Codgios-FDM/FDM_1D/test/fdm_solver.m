@@ -1,0 +1,88 @@
+function [phi,Rg] = fdm_solver(data,Kg,Rg)
+%
+%    [phi,Rg] = fdm_solver(data,Kg,Rg)
+%
+%
+%   Rutina SOLVER de resolucion del sistema de ecuaciones
+%   
+%   Type_solver = 0 ---> metodo directo con un parametro de
+%                        parametro de relajacion "relax"
+%                        grado de implicitud (1/2 Cranck Nicholson) "alpha" (use >0)
+%               = 1 ---> Line search
+%               = 2 ---> Explicito - Forward Euler
+%               = 3 ---> GMRES   
+%               = 4 ---> QMR (quasi minimum residual) 
+%
+
+%disp(' at SOLVER ')
+%keyboard;pause
+
+% desempaqueto datos
+relax = data.param.relax;
+fixa = data.fixa(:,1);
+phi = data.state;
+ndf = data.param.ndf;
+scaling = data.param.scaling;
+
+if scaling, % si el scaling esta activo divide cada fila por la suma de los valores absolutos de los elementos de cada fila
+    scalev = sum(abs(Kg'))';
+    Rg   = Rg ./ scalev;
+    Kg   = diag(scalev)\Kg;
+end
+
+if strcmp(data.param.type_solver,'implicit')
+    free = find(fixa==0);
+% selecciono solo las filas y columnas libres
+    Rg = Rg(free);
+    Kg = Kg(free,free);   
+% resuelvo
+    dphi = -Kg\Rg;
+    phiv = m2v(phi);
+% actualizo usando relax como un factor que sirve para poder converger en casos fuertemente no lineales
+    phiv(free) = phiv(free)+ relax*dphi;
+    dphi = relax*dphi;
+    phi  = v2m(phiv,ndf);   
+elseif strcmp(data.param.type_solver,'explicit')
+    free = find(fixa==0);
+% selecciono solo las filas y columnas libres
+    Rg = Rg(free);
+    Kg = Kg(free,free);   
+% resuelvo
+    dphi = -Rg./full(diag(Kg));
+    phiv = m2v(phi);
+% actualizo usando relax como un factor que sirve para poder converger en casos fuertemente no lineales
+    phiv(free) = phiv(free)+ relax*dphi;
+    dphi = relax*dphi;
+    phi  = v2m(phiv,ndf);
+elseif strcmp(data.param.type_solver,'analytic')
+
+    tol = 1e-10;
+    free = find(fixa==0);
+    % selecciono solo las filas y columnas libres
+    nofree = find(fixa==1);
+    if 0
+        T0 = data.state_old(free);
+        Kg = Kg(free,free);
+        phi_new = phi;
+        phi_new(free) = expm(-full(Kg)*data.param.dt)*T0;
+        phi = phi_new;
+    else
+        T0 = data.state_old;        
+        for k=1:length(nofree)
+            Rg = Rg + Kg(:,nofree(k))*T0(nofree(k),1);
+        end
+        Kg = Kg(free,free);
+        Rg = Rg(free,1);                
+        phi_new = phi;   
+        if norm(Rg)>tol        
+            CC = Kg*T0(free,1)+Rg;
+            phi_new(free,1) = -inv(full(Kg))*(Rg-expm(full(Kg)*data.param.dt)*CC);         
+        else
+            CC = T0(free,1);
+            phi_new(free,1) = expm(full(Kg)*data.param.dt)*CC;         
+        end
+        phi = phi_new;
+    end       
+else
+    error(' Not available other than IMPLICIT ')
+end

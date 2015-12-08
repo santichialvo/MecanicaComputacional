@@ -1,0 +1,42 @@
+\title{Continuous Approximation}
+
+\subtitle{Point collocation}
+
+Aqui se muestra la aproximacion usando colocacion puntual a la funcion $phi = sin(-1.8*pi*x) + x$
+
+La figura \ref{fg_Ej_2_0_M=2} nos muestra a la izquierda en trazo azul la solucion exacta, en trazo verde la parte $\psi$ de la solucion y en rojo la parte calculada $\hat \phi - \psi$. A la derecha se muestra el error y en circulos rojos los puntos de colocacion donde el error es casi nulo. Se observan 4 puntos con error nulo ya que se incluyen los dos extremos que como sabemos, por definicion tienen error nulo
+
+$$ 
+\phi(x=a) = psi(x=a) 
+N_m = 0 
+$$
+
+Del mismo modo vemos algo similar para los restantes casos. Para $M=3$ en la figura
+\ref{fg_Ej_2_0_M=3}, para $M=4$ en la figura \ref{fg_Ej_2_0_M=4} y finalmente para $M=9$ en
+\ref{fg_Ej_2_0_M=9}.
+
+La siguiente figura \ref{fg_Ej_2_0_conv} nos muestra la convergencia del error a medida que hacemos crecer el valor de $M$. 
+
+\subtitle{Galerkin}
+
+\subsubtitle{in 1D}
+
+La figura \ref{f1-fg_Ej_2_0_1D_L=2} nos muestra algo similar pero en este caso para una aproximacion Galerkin a la funcion $f = x^4*(1-x)$ usando como funciones de prueba 
+$N=x^m*(1-x)$. A la izquierda la solución obtenida y a la derecha el error, donde en este caso no tiene sentido buscar puntos con error casi nulo porque no hay, ya que la aproximacion es de tipo Galerkin.
+
+La figura \ref{f1-fg_Ej_2_0_1D_L=3} muestra lo mismo con $L=3$ y la figura \ref{f1-fg_Ej_2_0_1D_L=4} lo mismo con $L=4$. Como la familia de las funciones de prueba contiene a la funcion a aproximar para algun valor de $L$, en este caso $L=4$, a partir de $L=4$ el error es casi nulo.
+
+Mirando la figura \ref{f1-fg_Ej_2_0_1D_conv} vemos lo que acabamos de decir. Un detalle es que parece que para $L=4$ el error es muy bajo, casi nulo y luego comienza a crecer pero con $L$ pero siempre con valores muy bajos. Esto probablemente se deba a errores numericos producto del empeoramiento de la condicion del sistema a resolver a medida que incoporamos mas terminos.  
+
+Para el siguiente caso cambiamos la funcion a aproximar por $z = x*sin(2*pi*x)$.
+La figura \ref{f2-fg_Ej_2_0_1D_L=2}, \ref{f2-fg_Ej_2_0_1D_L=3} y \ref{f2-fg_Ej_2_0_1D_L=4} nos muestra que pasa en este caso y la figura \ref{f2-fg_Ej_2_0_1D_conv} nos muestra como converge con $L$. Vemos que a diferencia del caso anterior ahora las funciones de prueba no contienen a la solucion a aproximar por lo que el error decrece monotonamente con $L$ como se muestra en esta figura.
+
+Para el ultimo caso de esta serie volvemos a cambiar la funcion de forma por $N = sin(m*pi*x)$.
+La figura \ref{f3-fg_Ej_2_0_1D_L=2}, \ref{f3-fg_Ej_2_0_1D_L=3} y \ref{f3-fg_Ej_2_0_1D_L=4} junto con \ref{f3-fg_Ej_2_0_1D_conv} nos muestra lo mismo que antes pero ahora para este par de funciones de prueba y función a aproximar distinta.
+Vemos un comportamiento similar al caso anterior.
+
+\subsubtitle{in 2D}
+
+Esta seccion nos muestra un ejemplo en 2D, el primero el caso de una funcion continua y el segundo caso es una funcion discreta.
+
+El caso de la funcion continua

@@ -1,0 +1,232 @@
+
+Algunos comentarios sobre instalacion y uso del paquete Matlab de Diferencias Finitas para cursos de grado y posgrado
+
+Al comenzar la sesion hay que setear el path de Matlab para que acceda a rutinas que pueden ser llamadas por software
+
+Yo normalmente agrego estos comandos a un script de matlab que llamo "mymatlabpath.m" y que contiene lo siguiente
+
+addpath /home/nnigro/Soft/MY_TOOLS
+addpath /home/nnigro/Soft/MY_TOOLS/MESH
+addpath /home/nnigro/Soft/MY_TOOLS/MESH/Mesh3d
+addpath /home/nnigro/Soft/MY_TOOLS/femcode
+addpath /home/nnigro/Soft/MY_TOOLS/femcode/version3.2
+
+Esto para evitar tener que ejecutar cada uno de estos comandos en cada inicio de sesion.
+
+Esto significa que hay que posicionar en algun lugar del disco (a eleccion del usuario) donde instalar estos paquetes
+En mi caso he elegido el directorio Soft debajo del raiz pero es a libre eleccion. En cada caso hay que personalizar el
+seteo de path del matlab acorde a los directorios elegidos.
+
+El directorio FDM_1D contiene
+
+/home/nnigro/BETO/MNS/FDM/FDM_1D:
+  total used in directory 60 available 982552xd
+  drwxrwxr-x 2 nnigro nnigro 4096 Oct 20 23:24 .
+  drwxrwxr-x 5 nnigro nnigro 4096 Oct 14 08:57 ..
+  -rw-rw-r-- 1 nnigro nnigro 4138 Oct 20 23:10 fdm_1D
+  -rw-rw-r-- 1 nnigro nnigro  704 Oct 20 23:12 fdm_assemble.m
+  -rw-rw-r-- 1 nnigro nnigro 2570 Aug 26 13:06 fdm_assemble_2.m
+  -rw-rw-r-- 1 nnigro nnigro 2421 Aug 26 13:18 fdm_assemble_3.m
+  -rw-rw-r-- 1 nnigro nnigro 4316 Oct 20 23:23 fdm_assemble_5.m
+  -rw-rw-r-- 1 nnigro nnigro  226 Aug 20 12:36 fdm_plot.m
+  -rw-rw-r-- 1 nnigro nnigro 1440 Oct 20 23:24 fdm_solver.m
+
+fdm_1D es el main del programa : que llama a 3 rutinas:
+   fdm_assemble : que a su vez puede llamar a fdm_assemble_2 o 3 o 5 que han sido creadas como 
+   		  para poner enfasis en como cambia la eficiencia del codigo segun como se programe
+   fdm_solver
+   fdm_plot
+
+Dentro de cada una de estas rutinas hay comentarios explicando que hace cada parte
+
+El directorio FDM_2D contiene
+
+ /home/nnigro/BETO/MNS/FDM/FDM_2D/new:
+  wildcard *.m
+  -rw-rw-r-- 1 nnigro nnigro 1581 Nov 13 15:24 fdm_2D.m
+  -rw-rw-r-- 1 nnigro nnigro  781 Nov 13 15:11 fdm_assemble.m
+  -rw-rw-r-- 1 nnigro nnigro 1659 Nov 13 13:19 fdm_bc.m
+  -rw-rw-r-- 1 nnigro nnigro 5968 Nov 13 16:31 fdm_diffusion.m
+  -rw-rw-r-- 1 nnigro nnigro  153 Oct 14 12:20 fdm_plot.m
+  -rw-rw-r-- 1 nnigro nnigro 1039 Nov 13 13:17 fdm_solver.m
+  -rw-rw-r-- 1 nnigro nnigro  398 Nov 13 15:21 get_conductivity.m
+  -rw-rw-r-- 1 nnigro nnigro  567 Nov 13 16:28 handle_data_base.m
+  -rw-rw-r-- 1 nnigro nnigro 1175 Nov 13 16:35 read_data.m
+  -rw-rw-r-- 1 nnigro nnigro 1338 Nov 13 16:35 set_bc.m
+  -rw-rw-r-- 1 nnigro nnigro  890 Nov 13 11:49 set_bc2.m
+  -rw-rw-r-- 1 nnigro nnigro  181 Nov 13 16:37 time_step_pre.m
+
+Esta version es bastante distinta a la version 1D porque hemos evitado resolver la programacion
+en forma eficiente en pos de darle claridad al codigo. Es decir evitamos todo tipo de vectorizacion
+y se resuelven los lazos.
+
+A continuacion mostramos la rutina principal, es decir el "main" llamado fdm_2D
+
+Los comentarios adicionales a los comentarios propios de Matlab iniciados por un simbolo "%"
+se señalan con un simbolo >>>
+
+%
+% script para un codigo de diferencias finitas en coordenadas cartesianas en 2D
+%
+
+global data
+
+>>> data es una estructura que contiene casi toda la informacion que usa el codigo.
+>>> Una estructura tal como en C, permite juntar informacion de todo tipo con un minimo
+>>> de restricciones en cuanto al dimensionado.
+>>> Esta estructura contiene la grilla (xnod), el estado o variable incognita del problema
+>>> (state), el stencil usado para la discretizacion (Indx) y su inversa (Indx_inv), los
+>>> parametros del problema en una subestructura "param" dentro de la estrucutura madre "data"
+>>> las condiciones de contorno en una subestructura "bc" colgada de "data" que a su vez contiene
+>>> los diversos tipos de condiciones de contorno (por el momento solo Dirichlet y Neumann)
+
+% la variable initia dice si el calculo por iniciar arranca de cero o es
+% continuacion de otro preexistente en memoria.
+% initia = 1 : arranca de cero , no hay registro anterior en memoria
+% initia = 0 : continuacion de una corrida anterior
+
+if(exist('initia')==0),
+    disp('Enter variable INITIA ')
+    disp(' initia == 0 ---> if is a continuation of an older run  ')
+    disp(' initia ~= 0 ---> if started from the beginning  ')
+    initia = input(' Initia = ')
+
+    read_data;
+
+>>> read_data contiene toda la definicion del problema a los fines de aislarla del main
+
+    bfh_state = [];
+
+>>> bfh_state es un arreglo que junta estados en diferentes pasos de tiempo para hacer animaciones
+>>> u otras figuras en funcion de la evolucion del problema.
+
+end
+
+nsave = 1;
+
+R = zeros(numnp,1);
+
+>>> "R" es un vector que contiene el residuo del problema
+
+% do the computation
+for itime=1:ntime
+
+>>> lazo en el tiempo. Si el problema es estacionario se puede elegir un paso de tiempo muy grande (1e+15)
+>>> a fin de obtener la solucion estacionaria sin iterar en el tiempo. 
+            
+    ttime = ttime+dt;    
+    data.state_old = data.state;
+    
+    % calling a function to change some data time to time
+    time_step_pre;
+
+>>> "time_step_pre" es una rutina que permite modificar algun dato que sea funcion del tiempo.
+>>> Para usarla hay que editarla y modificar in situ el dato o los datos que se quieran hacer
+>>> funcion del tiempo
+    
+    % iteraciones del Newton en caso que el problema sea no lineal    
+    check_conv = 1;
+    iter = 1;
+    while check_conv
+
+>>> lazo del newton por si el problema es no lineal, si es lineal converge en 1 iteracion y sale
+
+        % ensamblaje de la matriz y del residuo
+        [K,R] = fdm_assemble();
+
+>>> esta es una de las rutinas mas importantes del codigo ya que prepara el sistema lineal a resolver
+>>> encada paso de tiempo y en cada iteracion del newton. (ver debajo un detalle de esta rutina)
+
+        % resolucion del sistema, basado en incrementos
+        [phi_new,R] = fdm_solver(data,K,R);
+
+>>> Esta rutina simplemente resuelve el sistema de ecuaciones, que se escribe en forma incremental, es decir
+>>> que lo que se calculan son incrementos de la solucion y no la solucion en si, que se actualiza a partir
+>>> de estos incrementos. De esta forma se evita modificar el sistema lineal por las condiciones de contorno
+
+        % update solution
+        data.state = phi_new;
+
+        % convergence check
+        disp([' time step = ' num2str(itime) ' t= ' num2str(ttime) ' | R | = ' num2str(norm(R))])
+        check_conv = (norm(R)>tol_newton)&(iter<=maxit);
+        iter = iter+1;
+    end
+    % plot
+    fdm_plot(data,itime)
+    % save each nsave time steps the state
+    if rem(itime,nsave)==0
+        bfh_state = [bfh_state,data.state];
+    end
+end
+
+RUTINA FDM_ASSEMBLE
+
+function [K,R] = fdm_assemble()
+%
+%   [K,R] = fdm_assemble(data)
+%
+
+global data
+
+% handle data (DESEMPAQUETAMOS los datos)
+Dt = data.param.dt;
+rho = data.param.rho;
+Cp = data.param.Cp;
+
+ntime = data.param.ntime;
+xnod = data.xnod;
+source = data.source;
+numnp = size(xnod,1);
+
+state = data.state;
+state_old = data.state_old;
+state_0 = state;
+
+job_flag = data.job_flag;
+
+R = zeros(numnp,1);
+
+>>> hasta aqui simplemente se toman los datos necesarios de la estructura
+
+get_conductivity;
+
+>>> aqui se puede introducir una funcion para la conductividad, por ejemplo si uno
+>>> quiere resolver problemas termicos sobre medios que sean heterogeneos.
+
+if strcmp(job_flag,'all');
+    rowg = []; colg = []; coeg = [];
+
+    fdm_diffusion;
+
+>>> este es el corazon del calculo, alli esta la forma discreta de la ecuacion diferencial    
+>>> (ver detalle mas abajo)
+
+    K = sparse(rowg,colg,coeg);
+
+>>> armado de la matriz global mediante una llamada a la funcion sparse. Este tipo de
+>>> ensamblaje global es muy practico porque uno no tiene que hacerlo por uno mismo. Lo hace
+>>> solo el lenguaje con sus funciones y ademas evita problemas de acceso simultaneo a memoria
+>>> cuando se usan estilos vectorizados de programacion (en este caso no hemos usado vectorizacion)
+ 
+    data.K = K;        % se carga en memoria la matriz una vez calculada
+    data.job_flag = 'no'; % esta variable se pone a cero y es la que controla el IF
+
+>>> con un seteo de la variable job_flag a cualquier cosa que no sea "all" se evita calcular la
+>>> matriz del sistema en los casos donde esta no cambia a lo largo de toda la simulacion.
+
+else
+    K = data.K;  % se toma la matriz de la memoria sin calcularla
+    fdm_diffusion;
+
+>>> aqui si bien no se calcula la matriz si hay que calcular el residuo que se hace en fdm_diffusion
+>>> EL nombre diffusion es un poco inapropiado ya que ahi dentro se introducen todos los terminos
+
+end
+
+FDM_DIFFUSION ROUTINE
+
+>>> Esta rutina tiene dos lazos, uno sobre el operador diferencial que se aplica al interior del dominio y el segundo sobre las condiciones de contorno en flujos.
+
+ 
+
